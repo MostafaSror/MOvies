@@ -19,7 +19,7 @@ public class NetworkUtils {
     public static URL buildUrl(String SearchQuery) {
         Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                 .appendPath( SearchQuery)
-                .appendQueryParameter(PARAM_KEY, "6aa29c0d00989285cdf8bc920b76985c")
+                .appendQueryParameter(PARAM_KEY, "")
                 .build();
 
         URL url = null;
