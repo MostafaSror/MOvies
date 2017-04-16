@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         mMoviesGridView.setLayoutManager(layoutManager);
         mMoviesGridView.setHasFixedSize(true);
 
-        loadData();
+        //loadData();
 
         numberofItems = 20 ;
         mMoviesAdaptor = new RecyclerViewAdaptor( this ,numberofItems, this);

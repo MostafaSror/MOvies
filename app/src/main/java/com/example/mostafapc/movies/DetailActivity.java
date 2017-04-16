@@ -27,6 +27,7 @@ public class DetailActivity extends AppCompatActivity {
     private TextView mTitle;
     private TextView mReleaseDate;
     private TextView mVote;
+    private TextView mOverview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +38,7 @@ public class DetailActivity extends AppCompatActivity {
         mTitle = (TextView) findViewById(R.id.details_title_view);
         mReleaseDate = (TextView) findViewById(R.id.details_release_date);
         mVote = (TextView) findViewById(R.id.details_vote_view);
+        mOverview = (TextView) findViewById(R.id.details_overview);
 
         String [] movieItemDetails ;
 
@@ -48,6 +50,8 @@ public class DetailActivity extends AppCompatActivity {
             mTitle.setText(movieItemDetails[movie_title]);
             mReleaseDate.setText(movieItemDetails[movie_release_date]);
             mVote.setText(movieItemDetails[movie_vote]);
+            mOverview.setText(movieItemDetails[movie_overview]);
+
         }
         else {
             Toast.makeText(this,"unable to fetch movie data" , Toast.LENGTH_LONG).show();
