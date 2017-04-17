@@ -1,10 +1,9 @@
 <resources>
     <string name="app_name">MOvies</string>
 
-    <string name="orderby">Order By</string>
-    <string name="pref_order_key" translatable="false">orderValue</string>
-    <string name="pref_order_label_topRated">Top Rated</string>
-    <string name="pref_order_label_popular">Most Popular</string>
-    <string name="pref_order_topRated">top_rated</string>
-    <string name="pref_order_popular">popular</string>
+    <string name="action_popular">Popular Movies</string>
+    <string name="action_top_rated">TopRated Movies</string>
+
+    <string name="error_choose_sort">"Kindly choose a sort order"</string>
+
 </resources>

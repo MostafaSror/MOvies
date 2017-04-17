@@ -1,35 +1,32 @@
 package com.example.mostafapc.movies;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
-
+import android.widget.Toast;
 
 import java.net.URL;
 
-
 public class MainActivity extends AppCompatActivity implements RecyclerViewAdaptor.ListItemClickListener{
 
-    int poster_path = 0;
-    int movie_title = 1;
-    int movie_id = 2;
-    int movie_overview = 3;
-    int movie_release_date = 4;
-    int movie_popularity = 5;
-    int movie_vote = 6;
+    static int poster_path = 0;
+    static int movie_title = 1;
+    static int movie_id = 2;
+    static int movie_overview = 3;
+    static int movie_release_date = 4;
+    static int movie_popularity = 5;
+    static int movie_vote = 6;
+    private String def_sort_type = "popular";
 
-    SharedPreferences prefs;
-
-    private int numberofItems ;
     private RecyclerView mMoviesGridView ;
     private RecyclerViewAdaptor mMoviesAdaptor ;
 
@@ -37,29 +34,25 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         mMoviesGridView = (RecyclerView) findViewById(R.id.rv_movies_grid);
         GridLayoutManager layoutManager = new GridLayoutManager(this , 2 );
         mMoviesGridView.setLayoutManager(layoutManager);
         mMoviesGridView.setHasFixedSize(true);
 
-        //loadData();
-
-        numberofItems = 20 ;
-        mMoviesAdaptor = new RecyclerViewAdaptor( this ,numberofItems, this);
+        mMoviesAdaptor = new RecyclerViewAdaptor( this, this);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        loadData();
+        loadData(def_sort_type);
     }
 
-    private void loadData() {
-
-        String sort_type = prefs.getString(getString(R.string.pref_order_key)
-                ,getString(R.string.pref_order_popular));
+    private void loadData(String sort_type) {
         new FetchMoviesTask().execute(sort_type);
     }
 
@@ -72,10 +65,22 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.order) {
-            startActivity(new Intent(this,SettingsActivity.class));
-            return true;
+        switch (id) {
+            case R.id.action_popular:{
+                def_sort_type = "popular";
+                loadData(def_sort_type);
+                return true;
+            }
+            case R.id.action_rated:{
+                def_sort_type = "top_rated";
+                loadData(def_sort_type);
+                return true;
+            }
+            default:{
+                Toast.makeText(this, R.string.error_choose_sort, Toast.LENGTH_SHORT).show();
+            }
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -102,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         @Override
         protected ContentValues [] doInBackground(String... params) {
 
-            /* If there's no zip code, there's nothing to look up. */
             if (params.length == 0) {
                 return null;
             }
@@ -130,11 +134,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         protected void onPostExecute(ContentValues [] moviesData) {
 
             if (moviesData != null) {
-                numberofItems = moviesData.length ;
                 mMoviesGridView.setAdapter(mMoviesAdaptor);
-
-            } else {
-
             }
         }
     }

@@ -7,10 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
 import com.squareup.picasso.Picasso;
-
-
 
 public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdaptor.MoviesViewHolder> {
 
@@ -25,7 +22,7 @@ public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdapto
     }
 
 
-    public RecyclerViewAdaptor(Context context ,int numberOfItems ,ListItemClickListener listener) {
+    public RecyclerViewAdaptor(Context context ,ListItemClickListener listener) {
         mOnClickListener = listener;
         mContext = context ;
     }

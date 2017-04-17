@@ -1,6 +1,5 @@
 package com.example.mostafapc.movies;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,17 +9,12 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class DetailActivity extends AppCompatActivity {
 
     int poster_path = 0;
     int movie_title = 1;
-    int movie_id = 2;
     int movie_overview = 3;
     int movie_release_date = 4;
-    int movie_popularity = 5;
     int movie_vote = 6;
 
     private ImageView mPoster;

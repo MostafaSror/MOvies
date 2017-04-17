@@ -11,10 +11,10 @@ import java.util.Scanner;
 
 public class NetworkUtils {
 
-    final static String BASE_URL =
+    final static private String BASE_URL =
             "http://api.themoviedb.org/3/movie";
 
-    static String PARAM_KEY = "api_key";
+    private static String PARAM_KEY = "api_key";
 
     public static URL buildUrl(String SearchQuery) {
         Uri builtUri = Uri.parse(BASE_URL).buildUpon()
@@ -32,13 +32,6 @@ public class NetworkUtils {
         return url;
     }
 
-    /**
-     * This method returns the entire result from the HTTP response.
-     *
-     * @param url The URL to fetch the HTTP response from.
-     * @return The contents of the HTTP response.
-     * @throws IOException Related to network and stream reading
-     */
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
