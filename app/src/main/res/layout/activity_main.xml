@@ -4,9 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true"
-    tools:context="com.example.mostafapc.movies.MainActivity">
+    android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
         android:layout_width="match_parent"
@@ -16,11 +14,11 @@
         android:titleTextColor="@android:color/holo_orange_dark">
     </android.support.v7.widget.Toolbar>
 
-    <android.support.v7.widget.RecyclerView
+    <fragment
+        android:id="@+id/fragment"
+        android:name="com.example.mostafapc.movies.FragmentMain"
+        tools:layout="@layout/fragment_main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/rv_movies_grid"
-        android:layout_gravity="center"
-        />
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>

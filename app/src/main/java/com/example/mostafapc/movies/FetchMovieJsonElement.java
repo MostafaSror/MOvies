@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 import java.util.Vector;
 
+import static android.app.PendingIntent.getActivity;
+
 /**
  * Created by mostafa-pc on 4/14/2017.
  */
@@ -18,6 +20,14 @@ public class FetchMovieJsonElement {
             throws JSONException {
 
         ContentValues[] cvArray ;
+
+        final String COLUMN_MOVIE_ID = "movie_id";
+        final String COLUMN_TITLE = "title";
+        final String COLUMN_OVERVIEW = "overview";
+        final String COLUMN_RELEASE_DATE = "release_date";
+        final String COLUMN_POSTER_PATH = "poster_path";
+        final String COLUMN_POPULARITY = "popularity";
+        final String COLUMN_VOTE = "vote";
 
         // These are the names of the JSON objects that need to be extracted.
         final String OWM_LIST = "results";
@@ -51,19 +61,23 @@ public class FetchMovieJsonElement {
             String vote = movieObject.getString(OWM_VOTE);
 
 
-            movieValues.put("COLUMN_MOVIE_ID", id);
-            movieValues.put("COLUMN_TITLE", title);
-            movieValues.put("COLUMN_OVERVIEW", overview);
-            movieValues.put("COLUMN_RELEASE_DATE", date);
-            movieValues.put("COLUMN_POSTER_PATH", url);
-            movieValues.put("COLUMN_POPULARITY", popularity);
-            movieValues.put("COLUMN_VOTE", vote);
+            movieValues.put(COLUMN_MOVIE_ID, id);
+            movieValues.put(COLUMN_TITLE, title);
+            movieValues.put(COLUMN_OVERVIEW, overview);
+            movieValues.put(COLUMN_RELEASE_DATE, date);
+            movieValues.put(COLUMN_POSTER_PATH, url);
+            movieValues.put(COLUMN_POPULARITY, popularity);
+            movieValues.put(COLUMN_VOTE, vote);
 
             cVVector.add(movieValues);
         }
 
+        int inserted = 0;
         cvArray = new ContentValues[cVVector.size()];
-        cVVector.toArray(cvArray);
+        // add values of movies to database
+        if ( cVVector.size() > 0 ) {
+            cVVector.toArray(cvArray);
+        }
 
         return cvArray;
     }

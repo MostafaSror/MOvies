@@ -16,9 +16,45 @@ public class NetworkUtils {
 
     private static String PARAM_KEY = "api_key";
 
-    public static URL buildUrl(String SearchQuery) {
+    public static URL buildMoviesUrl(String SearchQuery) {
         Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                 .appendPath( SearchQuery)
+                .appendQueryParameter(PARAM_KEY, "6aa29c0d00989285cdf8bc920b76985c")
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
+    public static URL buildReviewsUrl(String SearchQuery) {
+
+        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
+                .appendPath( SearchQuery)
+                .appendPath("reviews")
+                .appendQueryParameter(PARAM_KEY, "6aa29c0d00989285cdf8bc920b76985c")
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
+    public static URL buildTrailersUrl(String SearchQuery) {
+
+        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
+                .appendPath( SearchQuery)
+                .appendPath("videos")
                 .appendQueryParameter(PARAM_KEY, "6aa29c0d00989285cdf8bc920b76985c")
                 .build();
 

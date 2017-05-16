@@ -7,14 +7,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.example.mostafapc.movies.storage.MoviesDBContract;
 import com.squareup.picasso.Picasso;
 
-public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdaptor.MoviesViewHolder> {
+/**
+ * Created by mostafa-pc on 5/13/2017.
+ */
+
+public class RecyclerViewTextAdaptor extends RecyclerView.Adapter<RecyclerViewTextAdaptor.MoviesViewHolder> {
 
     final private ListItemClickListener mOnClickListener;
-    final String COLUMN_POSTER_PATH = "poster_path";
 
-    ContentValues [] mMoviesData ;
+    ContentValues[] mMoviesData ;
 
     Context mContext;
 
@@ -23,17 +29,17 @@ public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdapto
     }
 
 
-    public RecyclerViewAdaptor(Context context ,ListItemClickListener listener) {
+    public RecyclerViewTextAdaptor(Context context ,ListItemClickListener listener) {
         mOnClickListener = listener;
         mContext = context ;
     }
 
 
     @Override
-    public MoviesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerViewTextAdaptor.MoviesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.list_item_layout, parent , false);
+        View view = inflater.inflate(R.layout.list_trailer_item, parent , false);
         MoviesViewHolder viewHolder = new MoviesViewHolder(view);
 
         return viewHolder;
@@ -44,6 +50,7 @@ public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdapto
         holder.bind(position);
     }
 
+
     @Override
     public int getItemCount() {
         if (null == mMoviesData) return 0;
@@ -52,20 +59,17 @@ public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdapto
 
     class MoviesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        ImageView mMoviePoster;
+        TextView mMovieOverview;
 
         public MoviesViewHolder(View itemView) {
             super(itemView);
-
-            mMoviePoster = (ImageView) itemView.findViewById(R.id.movie_poster_item);
-
+            mMovieOverview = (TextView) itemView.findViewById(R.id.trailer_item);
             itemView.setOnClickListener(this);
         }
 
         void bind(int listIndex) {
-
-            String tempPoster = mMoviesData[listIndex].getAsString(COLUMN_POSTER_PATH);
-            Picasso.with(mContext).load(tempPoster).into(mMoviePoster);
+            String tempPoster = mMoviesData[listIndex].getAsString(MoviesDBContract.trailersEntry.COLUMN_TRAILER_NAME);
+            mMovieOverview.setText(tempPoster);
         }
 
         @Override
@@ -73,7 +77,7 @@ public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdapto
 
             int clickedPosition = getAdapterPosition();
             ContentValues cv = mMoviesData[clickedPosition];
-             mOnClickListener.onListItemClick(cv);
+            mOnClickListener.onListItemClick(cv);
         }
     }
 

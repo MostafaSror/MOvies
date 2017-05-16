@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -19,6 +21,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".DetailActivity" />
+        <provider
+            android:authorities="com.example.mostafapc.movies"
+            android:name=".storage.MoviesContentProvider">
+        </provider>
     </application>
 
 </manifest>

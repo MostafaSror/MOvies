@@ -1,34 +1,22 @@
 package com.example.mostafapc.movies;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.net.URL;
+public class MainActivity extends AppCompatActivity implements FragmentMain.Callback  {
 
-public class MainActivity extends AppCompatActivity implements RecyclerViewAdaptor.ListItemClickListener{
+    private static final String SORT_TYPE_PREF_FILE = "sort_type_file";
+    private static final String SORT_TYPE_PREF_KEY = "sort_type_key";
+    private String mSortOrder ;
+    private boolean mTwoPane;
 
-    static int poster_path = 0;
-    static int movie_title = 1;
-    static int movie_id = 2;
-    static int movie_overview = 3;
-    static int movie_release_date = 4;
-    static int movie_popularity = 5;
-    static int movie_vote = 6;
-    private String def_sort_type = "popular";
-
-    private RecyclerView mMoviesGridView ;
-    private RecyclerViewAdaptor mMoviesAdaptor ;
+    SharedPreferences sharedPref ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,22 +26,40 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mMoviesGridView = (RecyclerView) findViewById(R.id.rv_movies_grid);
-        GridLayoutManager layoutManager = new GridLayoutManager(this , 2 );
-        mMoviesGridView.setLayoutManager(layoutManager);
-        mMoviesGridView.setHasFixedSize(true);
+        sharedPref = getSharedPreferences(SORT_TYPE_PREF_FILE, MODE_PRIVATE);
+        mSortOrder = sharedPref.getString(SORT_TYPE_PREF_KEY, "popular");
 
-        mMoviesAdaptor = new RecyclerViewAdaptor( this, this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(SORT_TYPE_PREF_KEY, mSortOrder);
+        editor.commit();
+
+        if (findViewById(R.id.details_container) != null) {
+            mTwoPane = true;
+
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.details_container, new FragmentDetail())
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
+        }
+
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        loadData(def_sort_type);
-    }
-
-    private void loadData(String sort_type) {
-        new FetchMoviesTask().execute(sort_type);
+    protected void onResume() {
+        super.onResume();
+        String SortOrder = sharedPref.getString(SORT_TYPE_PREF_KEY, "popular");
+        // update the location in our second pane using the fragment manager
+        if (SortOrder != null && !SortOrder.equals(mSortOrder)) {
+            FragmentMain ff = (FragmentMain) getSupportFragmentManager().findFragmentById(R.id.fragment);
+            if ( null != ff ) {
+                ff.onSortOrderChanged(SortOrder);
+            }
+            mSortOrder = SortOrder;
+        }
     }
 
     @Override
@@ -64,78 +70,50 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        FragmentMain ff = (FragmentMain) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        SharedPreferences.Editor editor = sharedPref.edit();
 
         switch (id) {
             case R.id.action_popular:{
-                def_sort_type = "popular";
-                loadData(def_sort_type);
+                editor.putString(SORT_TYPE_PREF_KEY, "popular");
+                editor.commit();
+
+                ff.onSortOrderChanged("popular");
                 return true;
             }
             case R.id.action_rated:{
-                def_sort_type = "top_rated";
-                loadData(def_sort_type);
+                editor.putString(SORT_TYPE_PREF_KEY, "top_rated");
+                editor.commit();
+
+                ff.onSortOrderChanged("top_rated");
                 return true;
             }
             default:{
                 Toast.makeText(this, R.string.error_choose_sort, Toast.LENGTH_SHORT).show();
             }
         }
-
         return super.onOptionsItemSelected(item);
     }
-
     @Override
-    public void onListItemClick(ContentValues clickedItem) {
+    public void onPosterSelected(String [] MovieContent) {
+        if (mTwoPane) {
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            Bundle detailsargs = new Bundle();
+            detailsargs.putStringArray("edttext", getIntent().getStringArrayExtra(Intent.EXTRA_TEXT));
 
-        String [] movieDataString = new String[clickedItem.size()];
-        movieDataString[poster_path] = clickedItem.getAsString("COLUMN_POSTER_PATH");
-        movieDataString[movie_title] = clickedItem.getAsString("COLUMN_TITLE");
-        movieDataString[movie_id] = clickedItem.getAsString("COLUMN_MOVIE_ID");
-        movieDataString[movie_overview] = clickedItem.getAsString("COLUMN_OVERVIEW");
-        movieDataString[movie_release_date] = clickedItem.getAsString("COLUMN_RELEASE_DATE");
-        movieDataString[movie_popularity] = clickedItem.getAsString("COLUMN_POPULARITY");
-        movieDataString[movie_vote] = clickedItem.getAsString("COLUMN_VOTE");
+            FragmentDetail detailsFragment = new FragmentDetail();
+            detailsFragment.setArguments(detailsargs);
 
-        Intent intent = new Intent(MainActivity.this , DetailActivity.class );
-        intent.putExtra(Intent.EXTRA_TEXT, movieDataString);
-        startActivity(intent);
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.details_container, detailsFragment)
+                    .commit();
 
-    }
-
-    public class FetchMoviesTask extends AsyncTask<String ,Void, ContentValues []> {
-
-        @Override
-        protected ContentValues [] doInBackground(String... params) {
-
-            if (params.length == 0) {
-                return null;
-            }
-
-            String sortType = params[0];
-            URL RequestUrl = NetworkUtils.buildUrl(sortType);
-
-            try {
-                String jsonResponse = NetworkUtils
-                        .getResponseFromHttpUrl(RequestUrl);
-
-                ContentValues [] fetchedMoviesData = FetchMovieJsonElement.getMovieDataFromJson(jsonResponse);
-
-                mMoviesAdaptor.setMoviesData(fetchedMoviesData);
-
-                return fetchedMoviesData;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(ContentValues [] moviesData) {
-
-            if (moviesData != null) {
-                mMoviesGridView.setAdapter(mMoviesAdaptor);
-            }
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.putExtra(Intent.EXTRA_TEXT, MovieContent);
+            startActivity(intent);
         }
     }
 }
