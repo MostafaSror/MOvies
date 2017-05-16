@@ -55,7 +55,7 @@ public class NetworkUtils {
         Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                 .appendPath( SearchQuery)
                 .appendPath("videos")
-                .appendQueryParameter(PARAM_KEY, "6aa29c0d00989285cdf8bc920b76985c")
+                .appendQueryParameter(PARAM_KEY, Integer.toString(R.string.THE_MOVIE_DB_API_TOKEN))
                 .build();
 
         URL url = null;

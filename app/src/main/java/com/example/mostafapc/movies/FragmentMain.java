@@ -58,6 +58,8 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
 
         sharedPref = getActivity().getSharedPreferences(SORT_TYPE_PREF_FILE, Context.MODE_PRIVATE);
 
+        loadData();
+
         mMoviesGridView = (RecyclerView) rootView.findViewById(R.id.rv_movies_grid);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity() , 2 );
         mMoviesGridView.setLayoutManager(layoutManager);
@@ -65,12 +67,6 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
 
         mMoviesAdaptor = new RecyclerViewAdaptor( getActivity(), this);
         return rootView;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        loadData();
     }
 
     @Override
@@ -100,7 +96,7 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
             loaderManager.restartLoader(FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER,queryTopRatedBundle,this).forceLoad();
         }
     }
-    private void showMoviePosters(String sort_type) {
+    public void showMoviePosters(String sort_type) {
 
         Bundle queryBundle = new Bundle();
         queryBundle.putString(SEARCH_QUERY_SORT_EXTRA , sort_type );
@@ -130,9 +126,16 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
                                 null,
                                 null,
                                 null);
-                    } else{
+                    } else if(searchType == "top_rated"){
                         return  getContext().getContentResolver().query(
                                 MoviesDBContract.topRatedMoviesEntries.CONTENT_URI,
+                                null,
+                                null,
+                                null,
+                                null);
+                    }else {
+                        return  getContext().getContentResolver().query(
+                                MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,
                                 null,
                                 null,
                                 null,
@@ -162,22 +165,21 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
                                     break;
                             }
                         }
-                        return null;
+
 
                     } catch (Exception e) {
                         e.printStackTrace();
                         return null;
                     }
+
+                    showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
+                    return  null;
                 }
             }
         };
     }
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if(loader.getId()== SHOW_MOVIES_FROM_DB_LOADER){
-            if(data==null)
-                showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
-        }
         if(data != null) {
             ContentValues [] retVal = new ContentValues[data.getCount()];
             ContentValues map;

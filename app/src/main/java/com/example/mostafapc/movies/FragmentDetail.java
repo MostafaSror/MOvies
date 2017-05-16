@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,9 +18,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.example.mostafapc.movies.storage.MoviesDBContract;
 import com.squareup.picasso.Picasso;
@@ -39,6 +42,7 @@ public class FragmentDetail extends Fragment implements RecyclerViewTextAdaptor.
     int movie_id = 2;
     int movie_overview = 3;
     int movie_release_date = 4;
+    static int movie_popularity = 5;
     int movie_vote = 6;
 
     private ImageView mPoster;
@@ -77,6 +81,7 @@ public class FragmentDetail extends Fragment implements RecyclerViewTextAdaptor.
 
         trailersRecyclerViewAdaptor = new RecyclerViewTextAdaptor(getActivity(),this);
         reviewsRecyclerViewAdaptor = new RecyclerViewReviewsAdaptor(getActivity(),this);
+        final String [] movieItemDetails =getArguments().getStringArray("edttext");
 
         mPoster = (ImageView) rootView.findViewById(R.id.details_movie_poster);
         mTitle = (TextView) rootView.findViewById(R.id.details_title_view);
@@ -84,18 +89,41 @@ public class FragmentDetail extends Fragment implements RecyclerViewTextAdaptor.
         mVote = (TextView) rootView.findViewById(R.id.details_vote_view);
         mOverview = (TextView) rootView.findViewById(R.id.details_overview);
 
-        String [] movieItemDetails =getArguments().getStringArray("edttext");
+        final ToggleButton toggleButton;
+
+        toggleButton = (ToggleButton) rootView.findViewById(R.id.myToggleButton);
+        toggleButton.setChecked(false);
+        toggleButton.setBackgroundDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.img_star_grey));
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    toggleButton.setBackgroundDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.img_star_yellow));
+
+                    ContentValues cv = new ContentValues();
+                    cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_POSTER_PATH, movieItemDetails[poster_path]);
+                    cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_TITLE, movieItemDetails[movie_title]);
+                    cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_MOVIE_ID, movieItemDetails[movie_id]);
+                    cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_OVERVIEW, movieItemDetails[movie_overview]);
+                    cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_RELEASE_DATE, movieItemDetails[movie_release_date]);
+                    cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_POPULARITY, movieItemDetails[movie_popularity]);
+                    cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_VOTE, movieItemDetails[movie_vote]);
+
+                    getContext().getContentResolver().insert(MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,cv);
+
+                    Toast.makeText(getContext(),"Added To Favourites",Toast.LENGTH_SHORT).show();
+                }else
+                    toggleButton.setBackgroundDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.img_star_grey));
+            }
+        });
 
         if ( movieItemDetails.length != 0) {
-
             Picasso.with(getActivity()).load(movieItemDetails[poster_path]).into(mPoster);
             mTitle.setText(movieItemDetails[movie_title]);
             mReleaseDate.setText(movieItemDetails[movie_release_date]);
             mVote.setText(movieItemDetails[movie_vote]);
             mOverview.setText(movieItemDetails[movie_overview]);
-
             movie_entry_id = movieItemDetails[movie_id];
-
         }
         else {
             Toast.makeText(getActivity(),"unable to fetch movie data" , Toast.LENGTH_LONG).show();

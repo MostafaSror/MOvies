@@ -3,6 +3,7 @@
 
     <string name="action_popular">Popular Movies</string>
     <string name="action_top_rated">TopRated Movies</string>
+    <string name="action_fav">Favourite Movies</string>
 
     <string name="error_choose_sort">"Kindly choose a sort order"</string>
 

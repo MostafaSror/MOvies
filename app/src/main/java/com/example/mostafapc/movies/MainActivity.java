@@ -88,6 +88,13 @@ public class MainActivity extends AppCompatActivity implements FragmentMain.Call
                 ff.onSortOrderChanged("top_rated");
                 return true;
             }
+            case R.id.action_fav:{
+                editor.putString(SORT_TYPE_PREF_KEY, "favourite");
+                editor.commit();
+
+                ff.onSortOrderChanged("favourite");
+                return true;
+            }
             default:{
                 Toast.makeText(this, R.string.error_choose_sort, Toast.LENGTH_SHORT).show();
             }

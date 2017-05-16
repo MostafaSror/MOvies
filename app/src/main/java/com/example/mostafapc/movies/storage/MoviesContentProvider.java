@@ -28,16 +28,8 @@ public class MoviesContentProvider extends ContentProvider {
         matcher.addURI(authority, MoviesDBContract.PATH_TOP_RATED_MOVIES , TOP_RATED_MOVIES_URI);
         matcher.addURI(authority, MoviesDBContract.PATH_FAVOURITE_MOVIES , FAVOURITE_MOVIES_URI);
 
-        matcher.addURI(authority, MoviesDBContract.PATH_POPULAR_MOVIES + "/#", POPULAR_MOVIE_ID);
-        matcher.addURI(authority, MoviesDBContract.PATH_TOP_RATED_MOVIES + "/#", TOP_RATED_MOVIE_ID);
-        matcher.addURI(authority, MoviesDBContract.PATH_FAVOURITE_MOVIES + "/#", FAVOURITE_MOVIE_ID);
-
         matcher.addURI(authority, MoviesDBContract.PATH_TRAILERS , TRAILERS);
-        //matcher.addURI(authority, MoviesContract.PATH_TRAILERS + "/#", SINGLE_MOVIE_ID);
-
         matcher.addURI(authority, MoviesDBContract.PATH_REVIEWS , REVIEWS);
-
-        //matcher.addURI(authority, MoviesContract.PATH_REVIEWS + "/#", SINGLE_REVIEW);
 
         return matcher;
     }
@@ -94,45 +86,6 @@ public class MoviesContentProvider extends ContentProvider {
                 );
                 break;
 
-            case POPULAR_MOVIE_ID:
-                String  [] movie_ID = MoviesDBContract.popularMoviesEntries.getMovieIDFromUri(uri);
-                retCursor = db.query(
-                        MoviesDBContract.popularMoviesEntries.TABLE_NAME,
-                        projection,
-                        MoviesDBContract.popularMoviesEntries.COLUMN_MOVIE_ID + " = ? ",
-                        movie_ID,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-
-            case TOP_RATED_MOVIE_ID:
-                String [] movie_ID1 = MoviesDBContract.topRatedMoviesEntries.getMovieIDFromUri(uri);
-                retCursor = db.query(
-                        MoviesDBContract.topRatedMoviesEntries.TABLE_NAME,
-                        projection,
-                        MoviesDBContract.topRatedMoviesEntries.COLUMN_MOVIE_ID + " = ? ",
-                        movie_ID1,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-
-            case FAVOURITE_MOVIE_ID:
-                String [] movie_ID2 = MoviesDBContract.favouriteMoviesEntries.getMovieIDFromUri(uri);
-                retCursor = db.query(
-                        MoviesDBContract.favouriteMoviesEntries.TABLE_NAME,
-                        projection,
-                        MoviesDBContract.favouriteMoviesEntries.COLUMN_MOVIE_ID + " = ? ",
-                        movie_ID2,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-
             case TRAILERS:
                 retCursor = db.query(
                         MoviesDBContract.trailersEntry.TABLE_NAME,
@@ -144,19 +97,6 @@ public class MoviesContentProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-
-            /*case SINGLE_MOVIE_ID:
-                String temp = MoviesContract.trailersEntry.getMovieIDFromUri(uri);
-                retCursor = db.query(
-                        MoviesContract.trailersEntry.TABLE_NAME,
-                        projection,
-                        sTrailersMovieIDSelection,
-                        new String[]{temp},
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;*/
 
             case REVIEWS:
                 retCursor = db.query(
@@ -170,26 +110,9 @@ public class MoviesContentProvider extends ContentProvider {
                 );
                 break;
 
-            /*case SINGLE_REVIEW:
-                String temp_movieID = MoviesContract.reviewsEntry.getMovieIDFromUri(uri);
-                retCursor = db.query(
-                        MoviesContract.reviewsEntry.TABLE_NAME,
-                        projection,
-                        sReviewsMovieIDSelection,
-                        new String[]{temp_movieID},
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;*/
-
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
-
-        // Set the notification URI for the cursor to the one passed into the function. This
-        // causes the cursor to register a content observer to watch for changes that happen to
-        // this URI and any of it's descendants.
         retCursor.setNotificationUri(getContext().getContentResolver(), uri);
         return retCursor;
     }
