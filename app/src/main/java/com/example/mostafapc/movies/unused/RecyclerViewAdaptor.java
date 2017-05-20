@@ -1,3 +1,5 @@
+/*
+
 package com.example.mostafapc.movies;
 
 import android.content.ContentValues;
@@ -19,7 +21,7 @@ public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdapto
     Context mContext;
 
     public interface ListItemClickListener {
-        void onListItemClick(ContentValues contentValues);
+        void onLlistItemClick(ContentValues contentValues);
     }
 
 
@@ -81,3 +83,5 @@ public class RecyclerViewAdaptor extends RecyclerView.Adapter<RecyclerViewAdapto
         mMoviesData = moviesData;
     }
 }
+
+*/

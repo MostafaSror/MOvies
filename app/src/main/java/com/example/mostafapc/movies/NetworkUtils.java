@@ -16,7 +16,7 @@ public class NetworkUtils {
 
     private static String PARAM_KEY = "api_key";
 
-    public static URL buildMoviesUrl(String SearchQuery) {
+    public static String buildMoviesUrl(String SearchQuery) {
         Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                 .appendPath( SearchQuery)
                 .appendQueryParameter(PARAM_KEY, "6aa29c0d00989285cdf8bc920b76985c")
@@ -28,8 +28,16 @@ public class NetworkUtils {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+        String jsonResponse;
+        try {
+            jsonResponse = NetworkUtils
+                    .getResponseFromHttpUrl(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
 
-        return url;
+        return jsonResponse;
     }
 
     public static URL buildReviewsUrl(String SearchQuery) {

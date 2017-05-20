@@ -9,6 +9,7 @@ import android.database.DatabaseUtils;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,13 +19,15 @@ import android.view.ViewGroup;
 
 import com.example.mostafapc.movies.storage.MoviesDBContract;
 
+import org.json.JSONException;
+
 import java.net.URL;
 
 /**
  * Created by mostafa-pc on 5/15/2017.
  */
 
-public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListItemClickListener,
+public class FragmentMain extends Fragment implements ModifiedRecyclerViewadaptor.ListItemClickListener,
         LoaderManager.LoaderCallbacks<Cursor> {
 
     static int poster_path = 0;
@@ -41,7 +44,7 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
 
     SharedPreferences sharedPref ;
     private RecyclerView mMoviesGridView ;
-    private RecyclerViewAdaptor mMoviesAdaptor ;
+    private ModifiedRecyclerViewadaptor mMoviesAdaptor ;
 
     private static final int FETCH_POPULAR_MOVIES_FROM_INTERNET_LOADER = 10;
     private static final int FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER = 11;
@@ -65,7 +68,8 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
         mMoviesGridView.setLayoutManager(layoutManager);
         mMoviesGridView.setHasFixedSize(true);
 
-        mMoviesAdaptor = new RecyclerViewAdaptor( getActivity(), this);
+        mMoviesAdaptor = new ModifiedRecyclerViewadaptor( getActivity(), this);
+        mMoviesGridView.setAdapter(mMoviesAdaptor);
         return rootView;
     }
 
@@ -76,6 +80,7 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
     }
 
     private void loadData() {
+
         Bundle queryPopularBundle = new Bundle();
         Bundle queryTopRatedBundle = new Bundle();
         queryPopularBundle.putString(SEARCH_QUERY_SORT_EXTRA , "popular" );
@@ -112,92 +117,84 @@ public class FragmentMain extends Fragment implements RecyclerViewAdaptor.ListIt
 
     @Override
     public Loader<Cursor> onCreateLoader(final int id,final Bundle args) {
-        return new AsyncTaskLoader<Cursor>(getActivity()) {
-            @Override
-            public Cursor loadInBackground() {
+        if (id == SHOW_MOVIES_FROM_DB_LOADER ) {
+            String searchType = args.getString(SEARCH_QUERY_SORT_EXTRA);
 
-                if (id == SHOW_MOVIES_FROM_DB_LOADER ) {
-                    String searchType = args.getString(SEARCH_QUERY_SORT_EXTRA);
-
-                    if (searchType == "popular"){
-                        return  getContext().getContentResolver().query(
-                                MoviesDBContract.popularMoviesEntries.CONTENT_URI,
-                                null,
-                                null,
-                                null,
-                                null);
-                    } else if(searchType == "top_rated"){
-                        return  getContext().getContentResolver().query(
-                                MoviesDBContract.topRatedMoviesEntries.CONTENT_URI,
-                                null,
-                                null,
-                                null,
-                                null);
-                    }else {
-                        return  getContext().getContentResolver().query(
-                                MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,
-                                null,
-                                null,
-                                null,
-                                null);
-                    }
-                }else{
-                    String searchType = args.getString(SEARCH_QUERY_SORT_EXTRA);
-                    if(searchType == null || searchType.isEmpty()){
+            if (searchType == "popular") {
+                return new CursorLoader(getActivity(),
+                        MoviesDBContract.popularMoviesEntries.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null);
+            } else if (searchType == "top_rated") {
+                return new CursorLoader(getActivity(),
+                        MoviesDBContract.topRatedMoviesEntries.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null);
+            }
+        }else {
+            return new AsyncTaskLoader<Cursor>(getActivity()) {
+                @Override
+                public Cursor loadInBackground() {
+                    String SortType = args.getString(SEARCH_QUERY_SORT_EXTRA);
+                    if(SortType == null || SortType.isEmpty()){
                         return null;
                     }
-                    URL RequestUrl = NetworkUtils.buildMoviesUrl(searchType);
+                    String jsonResponse = NetworkUtils.buildMoviesUrl(SortType);
+
+                    ContentValues[] fetchedMoviesData = new ContentValues[0];
                     try {
-                        String jsonResponse = NetworkUtils
-                                .getResponseFromHttpUrl(RequestUrl);
+                        fetchedMoviesData = FetchMovieJsonElement.getMovieDataFromJson(jsonResponse);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
-                        ContentValues [] fetchedMoviesData = FetchMovieJsonElement.getMovieDataFromJson(jsonResponse);
-
-                        if ( fetchedMoviesData.length > 0 ) {
-                            switch (searchType){
+                    if ( fetchedMoviesData.length > 0 ) {
+                            switch (SortType){
                                 case "popular":
                                     getContext().getContentResolver().
                                             bulkInsert(MoviesDBContract.popularMoviesEntries.CONTENT_URI, fetchedMoviesData);
-                                    break;
+                                    return null;
                                 case "top_rated":
                                     getContext().getContentResolver().
                                             bulkInsert(MoviesDBContract.topRatedMoviesEntries.CONTENT_URI, fetchedMoviesData);
-                                    break;
+                                    return null;
                             }
                         }
 
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-
-                    showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
-                    return  null;
+                    return null;
                 }
-            }
-        };
+            };
+        }
+        return null;
     }
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if(data != null) {
+        if(loader.getId() == FETCH_POPULAR_MOVIES_FROM_INTERNET_LOADER ||
+                loader.getId() == FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER) {
+            showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
+        }
+        if(loader != null && data != null ) {
             ContentValues [] retVal = new ContentValues[data.getCount()];
             ContentValues map;
-            if (data.moveToFirst()) {
+            /*if (data.moveToFirst()) {
                 for(int i=0 ; i < data.getCount();i++){
                     map = new ContentValues();
                     DatabaseUtils.cursorRowToContentValues(data, map);
                     data.moveToNext();
                     retVal[i] = map ;
                 }
-            }
-            mMoviesAdaptor.setMoviesData(retVal);
-            mMoviesGridView.setAdapter(mMoviesAdaptor);
+            }*/
+            mMoviesAdaptor.setCursor(data);
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        mMoviesAdaptor.swapCursor(null);
     }
 
     @Override

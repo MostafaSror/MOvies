@@ -24,7 +24,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_POPULAR_MOVIES_TABLE = "CREATE TABLE " + popularMoviesEntries.TABLE_NAME + " (" +
                 popularMoviesEntries._ID + " INTEGER PRIMARY KEY," +
-                popularMoviesEntries.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
+                popularMoviesEntries.COLUMN_MOVIE_ID + " INTEGER NOT NULL UNIQUE, " +
                 popularMoviesEntries.COLUMN_TITLE + " TEXT NOT NULL, " +
                 popularMoviesEntries.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
                 popularMoviesEntries.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
@@ -34,7 +34,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 " );";
         final String SQL_CREATE_TOP_RATED_MOVIES_TABLE = "CREATE TABLE " + topRatedMoviesEntries.TABLE_NAME + " (" +
                 topRatedMoviesEntries._ID + " INTEGER PRIMARY KEY," +
-                topRatedMoviesEntries.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
+                topRatedMoviesEntries.COLUMN_MOVIE_ID + " INTEGER NOT NULL UNIQUE, " +
                 topRatedMoviesEntries.COLUMN_TITLE + " TEXT NOT NULL, " +
                 topRatedMoviesEntries.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
                 topRatedMoviesEntries.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
@@ -44,7 +44,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 " );";
         final String SQL_CREATE_FAVOURITE_MOVIES_TABLE = "CREATE TABLE " + favouriteMoviesEntries.TABLE_NAME + " (" +
                 favouriteMoviesEntries._ID + " INTEGER PRIMARY KEY," +
-                favouriteMoviesEntries.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
+                favouriteMoviesEntries.COLUMN_MOVIE_ID + " INTEGER NOT NULL UNIQUE, " +
                 favouriteMoviesEntries.COLUMN_TITLE + " TEXT NOT NULL, " +
                 favouriteMoviesEntries.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
                 favouriteMoviesEntries.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
