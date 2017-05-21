@@ -3,13 +3,12 @@ package com.example.mostafapc.movies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
@@ -17,14 +16,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.example.mostafapc.movies.service.MoviesService;
 import com.example.mostafapc.movies.storage.MoviesDBContract;
-
-import org.json.JSONException;
-
-import java.net.URL;
 
 /**
  * Created by mostafa-pc on 5/15/2017.
@@ -78,6 +72,12 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
     @Override
     public void onResume(){
         super.onResume();
+
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
     }
 

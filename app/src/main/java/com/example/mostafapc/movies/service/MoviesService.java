@@ -10,8 +10,6 @@ import com.example.mostafapc.movies.FetchMovieJsonElement;
 import com.example.mostafapc.movies.NetworkUtils;
 import com.example.mostafapc.movies.storage.MoviesDBContract;
 
-import org.json.JSONException;
-
 import java.net.URL;
 
 /**

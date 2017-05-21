@@ -8,8 +8,6 @@ import org.json.JSONObject;
 
 import java.util.Vector;
 
-import static android.app.PendingIntent.getActivity;
-
 /**
  * Created by mostafa-pc on 4/14/2017.
  */
