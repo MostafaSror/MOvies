@@ -1,6 +1,7 @@
 package com.example.mostafapc.movies;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 import android.content.ContentValues;
@@ -16,7 +17,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import com.example.mostafapc.movies.service.MoviesService;
 import com.example.mostafapc.movies.storage.MoviesDBContract;
 
 import org.json.JSONException;
@@ -46,8 +49,6 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
     private RecyclerView mMoviesGridView ;
     private ModifiedRecyclerViewadaptor mMoviesAdaptor ;
 
-    private static final int FETCH_POPULAR_MOVIES_FROM_INTERNET_LOADER = 10;
-    private static final int FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER = 11;
     private static final int SHOW_MOVIES_FROM_DB_LOADER = 20;
 
     public interface Callback {
@@ -70,6 +71,7 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
 
         mMoviesAdaptor = new ModifiedRecyclerViewadaptor( getActivity(), this);
         mMoviesGridView.setAdapter(mMoviesAdaptor);
+
         return rootView;
     }
 
@@ -81,26 +83,11 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
 
     private void loadData() {
 
-        Bundle queryPopularBundle = new Bundle();
-        Bundle queryTopRatedBundle = new Bundle();
-        queryPopularBundle.putString(SEARCH_QUERY_SORT_EXTRA , "popular" );
-        queryTopRatedBundle.putString(SEARCH_QUERY_SORT_EXTRA , "top_rated" );
-
-        LoaderManager loaderManager = getActivity().getSupportLoaderManager();
-        Loader<ContentValues[]> queryPopularLoader = loaderManager.getLoader(FETCH_POPULAR_MOVIES_FROM_INTERNET_LOADER);
-        Loader<ContentValues[]> queryTopRatedLoader = loaderManager.getLoader(FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER);
-
-        if (queryPopularLoader == null){
-            loaderManager.initLoader(FETCH_POPULAR_MOVIES_FROM_INTERNET_LOADER,queryPopularBundle,this).forceLoad();
-        }else {
-            loaderManager.restartLoader(FETCH_POPULAR_MOVIES_FROM_INTERNET_LOADER,queryPopularBundle,this).forceLoad();
-        }
-        if (queryTopRatedLoader == null){
-            loaderManager.initLoader(FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER,queryTopRatedBundle,this).forceLoad();
-        }else {
-            loaderManager.restartLoader(FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER,queryTopRatedBundle,this).forceLoad();
-        }
+        Intent intent = new Intent(getActivity(), MoviesService.class);
+        intent.putExtra(SEARCH_QUERY_SORT_EXTRA, sharedPref.getString(SORT_TYPE_PREF_KEY, "popular") );
+        getActivity().startService(intent);
     }
+
     public void showMoviePosters(String sort_type) {
 
         Bundle queryBundle = new Bundle();
@@ -117,9 +104,8 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
 
     @Override
     public Loader<Cursor> onCreateLoader(final int id,final Bundle args) {
-        if (id == SHOW_MOVIES_FROM_DB_LOADER ) {
-            String searchType = args.getString(SEARCH_QUERY_SORT_EXTRA);
 
+            String searchType = args.getString(SEARCH_QUERY_SORT_EXTRA);
             if (searchType == "popular") {
                 return new CursorLoader(getActivity(),
                         MoviesDBContract.popularMoviesEntries.CONTENT_URI,
@@ -135,60 +121,14 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
                         null,
                         null);
             }
-        }else {
-            return new AsyncTaskLoader<Cursor>(getActivity()) {
-                @Override
-                public Cursor loadInBackground() {
-                    String SortType = args.getString(SEARCH_QUERY_SORT_EXTRA);
-                    if(SortType == null || SortType.isEmpty()){
-                        return null;
-                    }
-                    String jsonResponse = NetworkUtils.buildMoviesUrl(SortType);
-
-                    ContentValues[] fetchedMoviesData = new ContentValues[0];
-                    try {
-                        fetchedMoviesData = FetchMovieJsonElement.getMovieDataFromJson(jsonResponse);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    if ( fetchedMoviesData.length > 0 ) {
-                            switch (SortType){
-                                case "popular":
-                                    getContext().getContentResolver().
-                                            bulkInsert(MoviesDBContract.popularMoviesEntries.CONTENT_URI, fetchedMoviesData);
-                                    return null;
-                                case "top_rated":
-                                    getContext().getContentResolver().
-                                            bulkInsert(MoviesDBContract.topRatedMoviesEntries.CONTENT_URI, fetchedMoviesData);
-                                    return null;
-                            }
-                        }
-
-                    return null;
-                }
-            };
-        }
-        return null;
+            return null;
     }
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if(loader.getId() == FETCH_POPULAR_MOVIES_FROM_INTERNET_LOADER ||
-                loader.getId() == FETCH_TOP_RATED_MOVIES_FROM_INTERNET_LOADER) {
-            showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
-        }
+
         if(loader != null && data != null ) {
-            ContentValues [] retVal = new ContentValues[data.getCount()];
-            ContentValues map;
-            /*if (data.moveToFirst()) {
-                for(int i=0 ; i < data.getCount();i++){
-                    map = new ContentValues();
-                    DatabaseUtils.cursorRowToContentValues(data, map);
-                    data.moveToNext();
-                    retVal[i] = map ;
-                }
-            }*/
-            mMoviesAdaptor.setCursor(data);
+            mMoviesAdaptor.swapCursor(data);
         }
     }
 

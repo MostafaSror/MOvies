@@ -25,6 +25,10 @@
             android:authorities="com.example.mostafapc.movies"
             android:name=".storage.MoviesContentProvider">
         </provider>
+        <service
+            android:name="com.example.mostafapc.movies.service.MoviesService"
+            >
+        </service>
     </application>
 
 </manifest>
