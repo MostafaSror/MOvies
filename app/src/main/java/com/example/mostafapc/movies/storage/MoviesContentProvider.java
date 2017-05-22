@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import static com.example.mostafapc.movies.storage.MoviesDBContract.*;
 
@@ -170,7 +171,21 @@ public class MoviesContentProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+
+        switch (match) {
+            case FAVOURITE_MOVIES_URI: {
+                long _id = db.delete(MoviesDBContract.favouriteMoviesEntries.TABLE_NAME,
+                        favouriteMoviesEntries.COLUMN_MOVIE_ID + "=?",selectionArgs );
+                if ( _id > 0 )
+                    return 1;
+                else
+                    return 0;
+            }
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
     }
 
     @Override
@@ -189,10 +204,23 @@ public class MoviesContentProvider extends ContentProvider {
                 returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(MoviesDBContract.popularMoviesEntries.TABLE_NAME, null, value);
-                        if (_id != -1) {
-                            returnCount++;
+                        Cursor retCursor = db.query(
+                                MoviesDBContract.popularMoviesEntries.TABLE_NAME,
+                                null,
+                                popularMoviesEntries.COLUMN_MOVIE_ID + "=?",
+                                new String[]{value.getAsString(popularMoviesEntries.COLUMN_MOVIE_ID)},
+                                null,
+                                null,
+                                null
+                        );
+                        if(retCursor.moveToFirst() == false){
+                            long _id = db.insert(MoviesDBContract.popularMoviesEntries.TABLE_NAME, null, value);
+                            if (_id != -1) {
+                                returnCount++;
+                            }
                         }
+                        else
+                            Toast.makeText(getContext(),"entries already exist",Toast.LENGTH_SHORT).show();
                     }
                     db.setTransactionSuccessful();
                 } finally {
@@ -206,9 +234,20 @@ public class MoviesContentProvider extends ContentProvider {
                 returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(MoviesDBContract.topRatedMoviesEntries.TABLE_NAME, null, value);
-                        if (_id != -1) {
-                            returnCount++;
+                        Cursor retCursor = db.query(
+                                MoviesDBContract.topRatedMoviesEntries.TABLE_NAME,
+                                null,
+                                popularMoviesEntries.COLUMN_MOVIE_ID + "=?",
+                                new String[]{value.getAsString(popularMoviesEntries.COLUMN_MOVIE_ID)},
+                                null,
+                                null,
+                                null
+                        );
+                        if(retCursor.moveToFirst() == false){
+                            long _id = db.insert(MoviesDBContract.topRatedMoviesEntries.TABLE_NAME, null, value);
+                            if (_id != -1) {
+                                returnCount++;
+                            }
                         }
                     }
                     db.setTransactionSuccessful();

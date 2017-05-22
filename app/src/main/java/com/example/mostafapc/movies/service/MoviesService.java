@@ -50,7 +50,7 @@ public class MoviesService extends IntentService {
                                 bulkInsert(MoviesDBContract.topRatedMoviesEntries.CONTENT_URI, fetchedMoviesData);
                         return;
                     default:
-                        Toast.makeText( this, "Favourites", Toast.LENGTH_LONG ).show();
+                        //Toast.makeText( this, "Favourites", Toast.LENGTH_LONG ).show();
                         return;
                 }
             }

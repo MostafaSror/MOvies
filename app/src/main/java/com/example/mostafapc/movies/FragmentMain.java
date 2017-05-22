@@ -55,24 +55,15 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         sharedPref = getActivity().getSharedPreferences(SORT_TYPE_PREF_FILE, Context.MODE_PRIVATE);
-
-        loadData();
-
         mMoviesGridView = (RecyclerView) rootView.findViewById(R.id.rv_movies_grid);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity() , 2 );
         mMoviesGridView.setLayoutManager(layoutManager);
         mMoviesGridView.setHasFixedSize(true);
 
-        mMoviesAdaptor = new ModifiedRecyclerViewadaptor( getActivity(), this);
+        mMoviesAdaptor = new ModifiedRecyclerViewadaptor( getActivity(),null, this);
         mMoviesGridView.setAdapter(mMoviesAdaptor);
-
+        loadData();
         return rootView;
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-
     }
 
     @Override
@@ -96,9 +87,9 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
         Loader<ContentValues[]> queryLoader = loaderManager.getLoader(SHOW_MOVIES_FROM_DB_LOADER);
 
         if (queryLoader == null){
-            loaderManager.initLoader(SHOW_MOVIES_FROM_DB_LOADER,queryBundle,this).forceLoad();
+            loaderManager.initLoader(SHOW_MOVIES_FROM_DB_LOADER,queryBundle,this);
         }else {
-            loaderManager.restartLoader(SHOW_MOVIES_FROM_DB_LOADER,queryBundle,this).forceLoad();
+            loaderManager.restartLoader(SHOW_MOVIES_FROM_DB_LOADER,queryBundle,this);
         }
     }
 
@@ -120,6 +111,13 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
                         null,
                         null,
                         null);
+            }else if (searchType == "favourite") {
+                return new CursorLoader(getActivity(),
+                        MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null);
             }
             return null;
     }
@@ -128,6 +126,7 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
         if(loader != null && data != null ) {
+
             mMoviesAdaptor.swapCursor(data);
         }
     }

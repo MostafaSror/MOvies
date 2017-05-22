@@ -22,11 +22,11 @@ public class MainActivity extends AppCompatActivity implements FragmentMain.Call
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        sharedPref = getSharedPreferences(SORT_TYPE_PREF_FILE, MODE_PRIVATE);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        sharedPref = getSharedPreferences(SORT_TYPE_PREF_FILE, MODE_PRIVATE);
+
         mSortOrder = sharedPref.getString(SORT_TYPE_PREF_KEY, "popular");
 
         SharedPreferences.Editor editor = sharedPref.edit();

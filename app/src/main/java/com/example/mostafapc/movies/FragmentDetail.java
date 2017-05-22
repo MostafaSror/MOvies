@@ -111,9 +111,12 @@ public class FragmentDetail extends Fragment implements RecyclerViewTextAdaptor.
                     getContext().getContentResolver().insert(MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,cv);
 
                     Toast.makeText(getContext(),"Added To Favourites",Toast.LENGTH_SHORT).show();
-                }else
+                }else{
                     toggleButton.setBackgroundDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.img_star_grey));
-            }
+                    getContext().getContentResolver().delete(MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,
+                            MoviesDBContract.favouriteMoviesEntries.COLUMN_MOVIE_ID,
+                            new String[]{movieItemDetails[poster_path]});
+            }}
         });
 
         if ( movieItemDetails.length != 0) {
