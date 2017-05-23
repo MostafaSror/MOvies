@@ -26,8 +26,8 @@ public class ModifiedRecyclerViewadaptor extends CursorRecyclerViewAdaptor<Modif
         void onListItemClick(ContentValues contentValues);
     }
 
-    public ModifiedRecyclerViewadaptor(Context context,Cursor cursor, ModifiedRecyclerViewadaptor.ListItemClickListener listener){
-        super(context,cursor);
+    public ModifiedRecyclerViewadaptor(Context context, ModifiedRecyclerViewadaptor.ListItemClickListener listener){
+        super(context);
         mOnClickListener = listener;
     }
 

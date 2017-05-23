@@ -226,8 +226,9 @@ public class MoviesContentProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                getContext().getContentResolver().notifyChange(uri, null);
+                //getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
+
 
             case TOP_RATED_MOVIES_URI:
                 db.beginTransaction();
@@ -257,6 +258,7 @@ public class MoviesContentProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
 
+
             case FAVOURITE_MOVIES_URI:
                 db.beginTransaction();
                 returnCount = 0;
@@ -273,6 +275,7 @@ public class MoviesContentProvider extends ContentProvider {
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
+
 
             case TRAILERS:
                 db.beginTransaction();
@@ -291,6 +294,7 @@ public class MoviesContentProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
 
+
             case REVIEWS:
                 db.beginTransaction();
                 returnCount = 0;
@@ -308,8 +312,10 @@ public class MoviesContentProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
 
+
             default:
-                return super.bulkInsert(uri, values);
+                return 0;
+//                        super.bulkInsert(uri, values);
         }
     }
 

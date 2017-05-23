@@ -38,14 +38,14 @@ public abstract class CursorRecyclerViewAdaptor<VH extends RecyclerView.ViewHold
 
     private DataSetObserver mDataSetObserver;
 
-    public CursorRecyclerViewAdaptor(Context context , Cursor cursor) {
+    public CursorRecyclerViewAdaptor(Context context ) {
         mContext = context;
-        mCursor = cursor ;
     }
 
     public Cursor getCursor() {
         return mCursor;
     }
+
     public void setCursor( Cursor c) {
         mCursor = c ;
         mDataValid = c != null;

@@ -1,7 +1,9 @@
 package com.example.mostafapc.movies;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,14 +13,18 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.mostafapc.movies.service.MoviesService;
 import com.example.mostafapc.movies.storage.MoviesDBContract;
+
+import org.json.JSONException;
 
 /**
  * Created by mostafa-pc on 5/15/2017.
@@ -43,6 +49,9 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
     private RecyclerView mMoviesGridView ;
     private ModifiedRecyclerViewadaptor mMoviesAdaptor ;
 
+
+    private MyBroadcastReceiver myBroadcastReceiver;
+
     private static final int SHOW_MOVIES_FROM_DB_LOADER = 20;
 
     public interface Callback {
@@ -58,18 +67,67 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
         mMoviesGridView = (RecyclerView) rootView.findViewById(R.id.rv_movies_grid);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity() , 2 );
         mMoviesGridView.setLayoutManager(layoutManager);
-        mMoviesGridView.setHasFixedSize(true);
+        //mMoviesGridView.setHasFixedSize(true);
 
-        mMoviesAdaptor = new ModifiedRecyclerViewadaptor( getActivity(),null, this);
+        mMoviesAdaptor = new ModifiedRecyclerViewadaptor( getActivity(), this);
         mMoviesGridView.setAdapter(mMoviesAdaptor);
         loadData();
+
         return rootView;
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        myBroadcastReceiver = new MyBroadcastReceiver();
+
+        //register BroadcastReceiver
+        IntentFilter intentFilter = new IntentFilter(MoviesService.ACTION_MyIntentService);
+        intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        getContext().registerReceiver(myBroadcastReceiver, intentFilter);
+
+    }
+    class MyBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String jsonResponse = intent.getStringExtra(MoviesService.EXTRA_KEY_OUT);
+
+            try {
+                ContentValues[] fetchedMoviesData = FetchMovieJsonElement.getMovieDataFromJson(jsonResponse);
+
+                if ( fetchedMoviesData.length > 0 ) {
+                    switch (sharedPref.getString(SORT_TYPE_PREF_KEY, "popular")){
+                        case "popular":
+                            getActivity().getContentResolver().
+                                    bulkInsert(MoviesDBContract.popularMoviesEntries.CONTENT_URI, fetchedMoviesData);
+                            showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
+
+                            return;
+                        case "top_rated":
+                            getActivity().getContentResolver().
+                                    bulkInsert(MoviesDBContract.topRatedMoviesEntries.CONTENT_URI, fetchedMoviesData);
+                            return;
+                        default:
+                            //Toast.makeText( this, "Favourites", Toast.LENGTH_LONG ).show();
+                            return;
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //un-register BroadcastReceiver
+        getContext().unregisterReceiver(myBroadcastReceiver);
+
     }
 
     private void loadData() {
@@ -98,19 +156,21 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
 
             String searchType = args.getString(SEARCH_QUERY_SORT_EXTRA);
             if (searchType == "popular") {
-                return new CursorLoader(getActivity(),
+                CursorLoader loader = new CursorLoader(getActivity(),
                         MoviesDBContract.popularMoviesEntries.CONTENT_URI,
                         null,
                         null,
                         null,
                         null);
+                return loader;
             } else if (searchType == "top_rated") {
-                return new CursorLoader(getActivity(),
+                CursorLoader loader = new CursorLoader(getActivity(),
                         MoviesDBContract.topRatedMoviesEntries.CONTENT_URI,
                         null,
                         null,
                         null,
                         null);
+                return loader;
             }else if (searchType == "favourite") {
                 return new CursorLoader(getActivity(),
                         MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,
@@ -124,11 +184,8 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mMoviesAdaptor.swapCursor(data);
 
-        if(loader != null && data != null ) {
-
-            mMoviesAdaptor.swapCursor(data);
-        }
     }
 
     @Override
@@ -154,4 +211,7 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
     void onSortOrderChanged(String sort_type ) {
         showMoviePosters(sort_type);
     }
+
+
+
 }

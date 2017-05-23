@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 
 import com.example.mostafapc.movies.FetchMovieJsonElement;
@@ -17,6 +18,9 @@ import java.net.URL;
  */
 
 public class MoviesService extends IntentService {
+
+    public static final String ACTION_MyIntentService = "com.example.mostafapc.movies.service.RESPONSE";
+    public static final String EXTRA_KEY_OUT = "EXTRA_OUT";
 
     private final static String SEARCH_QUERY_SORT_EXTRA = "query_sort_type";
 
@@ -37,23 +41,12 @@ public class MoviesService extends IntentService {
 
             String jsonResponse = NetworkUtils.getResponseFromHttpUrl(url);
 
-            ContentValues[] fetchedMoviesData = FetchMovieJsonElement.getMovieDataFromJson(jsonResponse);
+            Intent intentResponse = new Intent();
+            intentResponse.setAction(ACTION_MyIntentService);
+            intentResponse.addCategory(Intent.CATEGORY_DEFAULT);
+            intentResponse.putExtra(EXTRA_KEY_OUT, jsonResponse);
+            sendBroadcast(intentResponse);
 
-            if ( fetchedMoviesData.length > 0 ) {
-                switch (SortType){
-                    case "popular":
-                        getContentResolver().
-                                bulkInsert(MoviesDBContract.popularMoviesEntries.CONTENT_URI, fetchedMoviesData);
-                        return;
-                    case "top_rated":
-                        getContentResolver().
-                                bulkInsert(MoviesDBContract.topRatedMoviesEntries.CONTENT_URI, fetchedMoviesData);
-                        return;
-                    default:
-                        //Toast.makeText( this, "Favourites", Toast.LENGTH_LONG ).show();
-                        return;
-                }
-            }
         } catch (Exception e) {
             e.printStackTrace();
             return;
