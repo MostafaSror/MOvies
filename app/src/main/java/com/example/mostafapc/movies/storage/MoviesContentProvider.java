@@ -219,14 +219,11 @@ public class MoviesContentProvider extends ContentProvider {
                                 returnCount++;
                             }
                         }
-                        else
-                            Toast.makeText(getContext(),"entries already exist",Toast.LENGTH_SHORT).show();
                     }
                     db.setTransactionSuccessful();
                 } finally {
                     db.endTransaction();
                 }
-                //getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
 
 
@@ -255,7 +252,6 @@ public class MoviesContentProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
 
 
