@@ -115,7 +115,7 @@ public class FragmentDetail extends Fragment implements RecyclerViewTextAdaptor.
                     toggleButton.setBackgroundDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.img_star_grey));
                     getContext().getContentResolver().delete(MoviesDBContract.favouriteMoviesEntries.CONTENT_URI,
                             MoviesDBContract.favouriteMoviesEntries.COLUMN_MOVIE_ID,
-                            new String[]{movieItemDetails[poster_path]});
+                            new String[]{movieItemDetails[movie_id]});
             }}
         });
 

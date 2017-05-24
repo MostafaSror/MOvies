@@ -102,14 +102,14 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
                             getActivity().getContentResolver().
                                     bulkInsert(MoviesDBContract.popularMoviesEntries.CONTENT_URI, fetchedMoviesData);
                             showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
-
                             return;
                         case "top_rated":
                             getActivity().getContentResolver().
                                     bulkInsert(MoviesDBContract.topRatedMoviesEntries.CONTENT_URI, fetchedMoviesData);
+                            showMoviePosters(sharedPref.getString(SORT_TYPE_PREF_KEY, "popular"));
                             return;
                         default:
-                            //Toast.makeText( this, "Favourites", Toast.LENGTH_LONG ).show();
+                            Toast.makeText( getActivity(), "Favourites", Toast.LENGTH_LONG ).show();
                             return;
                     }
                 }
@@ -209,7 +209,10 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
     }
 
     void onSortOrderChanged(String sort_type ) {
-        showMoviePosters(sort_type);
+        if(sort_type == "popular" || sort_type == "top_rated")
+            loadData();
+        if(sort_type == "favourite")
+            showMoviePosters(sort_type);
     }
 
 
