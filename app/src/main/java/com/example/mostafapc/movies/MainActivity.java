@@ -26,12 +26,7 @@ public class MainActivity extends AppCompatActivity implements FragmentMain.Call
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         mSortOrder = sharedPref.getString(SORT_TYPE_PREF_KEY, "popular");
-
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(SORT_TYPE_PREF_KEY, mSortOrder);
-        editor.commit();
 
         if (findViewById(R.id.details_container) != null) {
             mTwoPane = true;

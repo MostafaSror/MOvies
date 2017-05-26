@@ -70,6 +70,7 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
         //mMoviesGridView.setHasFixedSize(true);
 
         mMoviesAdaptor = new ModifiedRecyclerViewadaptor( getActivity(), this);
+        mMoviesAdaptor.setCursor(null);
         mMoviesGridView.setAdapter(mMoviesAdaptor);
         loadData();
 
@@ -184,7 +185,7 @@ public class FragmentMain extends Fragment implements ModifiedRecyclerViewadapto
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mMoviesAdaptor.swapCursor(data);
+        mMoviesAdaptor.changeCursor(data);
 
     }
 
