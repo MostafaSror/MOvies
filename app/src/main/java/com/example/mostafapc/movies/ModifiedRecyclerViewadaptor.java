@@ -75,9 +75,9 @@ public class ModifiedRecyclerViewadaptor extends CursorRecyclerViewAdaptor<Modif
             cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_VOTE,mCursor.getInt(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_VOTE)));
             cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_POPULARITY,mCursor.getInt(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_POPULARITY)));
             cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_RELEASE_DATE,mCursor.getInt(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_RELEASE_DATE)));
-            cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_TITLE,mCursor.getInt(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_TITLE)));
-            cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_POSTER_PATH,mCursor.getInt(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_POSTER_PATH)));
-            cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_OVERVIEW,mCursor.getInt(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_OVERVIEW)));
+            cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_TITLE,mCursor.getString(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_TITLE)));
+            cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_POSTER_PATH,mCursor.getString(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_POSTER_PATH)));
+            cv.put(MoviesDBContract.popularMoviesEntries.COLUMN_OVERVIEW,mCursor.getString(mCursor.getColumnIndex(MoviesDBContract.popularMoviesEntries.COLUMN_OVERVIEW)));
             mOnClickListener.onListItemClick(cv);
         }
     }

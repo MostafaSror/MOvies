@@ -1,16 +1,19 @@
 package com.example.mostafapc.movies;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,10 +26,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.example.mostafapc.movies.service.MoviesService;
+import com.example.mostafapc.movies.service.ReviewsService;
+import com.example.mostafapc.movies.service.TrailersService;
 import com.example.mostafapc.movies.storage.MoviesDBContract;
 import com.squareup.picasso.Picasso;
 
-import java.net.URL;
+import org.json.JSONException;
 
 /**
  * Created by mostafa-pc on 5/16/2017.
@@ -63,6 +69,53 @@ public class FragmentDetail extends Fragment implements RecyclerViewTextAdaptor.
     private static final int FETCH_TRAILERS_FROM_INTERNET_LOADER = 101;
     private static final int SHOW_REVIEWS_FROM_DB_LOADER = 200;
     private static final int SHOW_TRAILERS_FROM_DB_LOADER = 201;
+
+    private  MyReviewsReceiver myReviewsReceiver;
+    private  MyTrailersReceiver myTrailersReceiver;
+
+    class MyReviewsReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String jsonResponse = intent.getStringExtra(ReviewsService.EXTRA_KEY_OUT);
+
+            try {
+                ContentValues[] fetchedMoviesData = FetchReviewsJsonElement.getTrailersDataFromJson(jsonResponse);
+
+                if ( fetchedMoviesData.length > 0 ) {
+
+                    getContext().getContentResolver().
+                                    bulkInsert(MoviesDBContract.reviewsEntry.CONTENT_URI, fetchedMoviesData);
+                    showMoviePosters(movie_entry_id , "reviews");
+
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+    class MyTrailersReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String jsonResponse = intent.getStringExtra(TrailersService.EXTRA_KEY_OUT);
+
+            try {
+                ContentValues[] fetchedMoviesData = FetchTrailersJsonElement.getTrailersDataFromJson(jsonResponse);
+
+                if ( fetchedMoviesData.length > 0 ) {
+
+                    getContext().getContentResolver().
+                                bulkInsert(MoviesDBContract.trailersEntry.CONTENT_URI, fetchedMoviesData);
+                    showMoviePosters(movie_entry_id , "trailers");
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 
 
     @Override
@@ -134,115 +187,85 @@ public class FragmentDetail extends Fragment implements RecyclerViewTextAdaptor.
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        myReviewsReceiver = new MyReviewsReceiver();
+        myTrailersReceiver = new MyTrailersReceiver();
+
+        IntentFilter intentReviewsFilter = new IntentFilter(ReviewsService.ACTION_MyIntentService);
+        IntentFilter intentTrailersFilter = new IntentFilter(TrailersService.ACTION_MyIntentService);
+
+        intentReviewsFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        intentTrailersFilter.addCategory(Intent.CATEGORY_DEFAULT);
+
+        getContext().registerReceiver(myReviewsReceiver, intentReviewsFilter);
+        getContext().registerReceiver(myTrailersReceiver, intentTrailersFilter);
+    }
+
+    @Override
     public void onStart(){
         super.onStart();
         loadData(movie_entry_id);
     }
-    @Override
-    public void onResume(){
-        super.onResume();
-        showMoviePosters(movie_entry_id);
-    }
     private void loadData(String movie_ID) {
 
-        Bundle queryPopularBundle = new Bundle();
-        queryPopularBundle.putString(SEARCH_QUERY_MOVIE_ID_EXTRA , movie_ID );
-        android.support.v4.app.LoaderManager loaderManager = getActivity().getSupportLoaderManager();
-        android.support.v4.content.Loader<Object> queryPopularLoader = loaderManager.getLoader(FETCH_REVIEWS_FROM_INTERNET_LOADER);
-        android.support.v4.content.Loader<Object> queryTopRatedLoader = loaderManager.getLoader(FETCH_TRAILERS_FROM_INTERNET_LOADER);
+        Intent reviewsIntent = new Intent(getActivity(), ReviewsService.class);
+        reviewsIntent.putExtra(SEARCH_QUERY_MOVIE_ID_EXTRA, movie_ID );
+        getActivity().startService(reviewsIntent);
 
-        if (queryPopularLoader == null){
-            loaderManager.initLoader(FETCH_REVIEWS_FROM_INTERNET_LOADER, queryPopularBundle, this).forceLoad();
-        }else {
-            loaderManager.restartLoader(FETCH_REVIEWS_FROM_INTERNET_LOADER, queryPopularBundle, this).forceLoad();
-        }
-        if (queryTopRatedLoader == null){
-            loaderManager.initLoader(FETCH_TRAILERS_FROM_INTERNET_LOADER, queryPopularBundle, this).forceLoad();
-        }else {
-            loaderManager.restartLoader(FETCH_TRAILERS_FROM_INTERNET_LOADER, queryPopularBundle, this).forceLoad();
-        }
+        Intent trailersIntent = new Intent(getActivity(), TrailersService.class);
+        trailersIntent.putExtra(SEARCH_QUERY_MOVIE_ID_EXTRA, movie_ID );
+        getActivity().startService(trailersIntent);
     }
-    private void showMoviePosters(String sort_id) {
+    private void showMoviePosters(String sort_id , String dataType) {
 
         Bundle queryBundle = new Bundle();
         queryBundle.putString(SEARCH_QUERY_MOVIE_ID_EXTRA , sort_id );
         LoaderManager loaderManager = getActivity().getSupportLoaderManager();
-        android.support.v4.content.Loader<ContentValues[]> queryReviewsLoader = loaderManager.getLoader(SHOW_REVIEWS_FROM_DB_LOADER);
-        android.support.v4.content.Loader<ContentValues[]> queryTrailersLoader = loaderManager.getLoader(SHOW_TRAILERS_FROM_DB_LOADER);
 
-        if (queryReviewsLoader == null){
-            loaderManager.initLoader(SHOW_REVIEWS_FROM_DB_LOADER,queryBundle,this).forceLoad();
-        }else {
-            loaderManager.restartLoader(SHOW_REVIEWS_FROM_DB_LOADER,queryBundle,this).forceLoad();
-        }
-        if (queryReviewsLoader == null){
-            loaderManager.initLoader(SHOW_TRAILERS_FROM_DB_LOADER,queryBundle,this).forceLoad();
-        }else {
-            loaderManager.restartLoader(SHOW_TRAILERS_FROM_DB_LOADER,queryBundle,this).forceLoad();
+        switch (dataType){
+            case "reviews":
+                android.support.v4.content.Loader<ContentValues[]> queryReviewsLoader =
+                        loaderManager.getLoader(SHOW_REVIEWS_FROM_DB_LOADER);
+                if (queryReviewsLoader == null){
+                    loaderManager.initLoader(SHOW_REVIEWS_FROM_DB_LOADER,queryBundle,this).forceLoad();
+                }else {
+                    loaderManager.restartLoader(SHOW_REVIEWS_FROM_DB_LOADER,queryBundle,this).forceLoad();
+                }
+                break;
+            case "trailers":
+                android.support.v4.content.Loader<ContentValues[]> queryTrailersLoader =
+                        loaderManager.getLoader(SHOW_TRAILERS_FROM_DB_LOADER);
+                if (queryTrailersLoader == null){
+                    loaderManager.initLoader(SHOW_TRAILERS_FROM_DB_LOADER,queryBundle,this).forceLoad();
+                }else {
+                    loaderManager.restartLoader(SHOW_TRAILERS_FROM_DB_LOADER,queryBundle,this).forceLoad();
+                }
+                break;
+
         }
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
-        return new AsyncTaskLoader<Cursor>(getActivity()) {
-            @Override
-            public Cursor loadInBackground() {
-                String searchID = args.getString(SEARCH_QUERY_MOVIE_ID_EXTRA);
-                if ( id == SHOW_REVIEWS_FROM_DB_LOADER){
-                    return  getContext().getContentResolver().query(
-                            MoviesDBContract.reviewsEntry.CONTENT_URI,
-                            null,
-                            MoviesDBContract.reviewsEntry.COLUMN_MOVIE_ID + "=?",
-                            new String[]{searchID},
-                            null);
-                } else if(id == SHOW_TRAILERS_FROM_DB_LOADER) {
-                    return  getContext().getContentResolver().query(
-                            MoviesDBContract.trailersEntry.CONTENT_URI,
-                            null,
-                            MoviesDBContract.trailersEntry.COLUMN_MOVIE_ID + "=?",
-                            new String[]{searchID},
-                            null);
-                } else{
-                    if(searchID == null || searchID.isEmpty()){
-                        return null;
-                    }
-                    URL RequestUrl;
-                    if(id == FETCH_TRAILERS_FROM_INTERNET_LOADER)
-                        RequestUrl = NetworkUtils.buildTrailersUrl(searchID);
-                    else
-                        RequestUrl = NetworkUtils.buildReviewsUrl(searchID);
-
-                    try {
-                        String jsonResponse = NetworkUtils
-                                .getResponseFromHttpUrl(RequestUrl);
-
-                        ContentValues [] fetchedMoviesData;
-                        if(id == FETCH_TRAILERS_FROM_INTERNET_LOADER)
-                            fetchedMoviesData = FetchTrailersJsonElement.getTrailersDataFromJson(jsonResponse);
-                        else
-                            fetchedMoviesData = FetchReviewsJsonElement.getTrailersDataFromJson(jsonResponse);
-
-                        if ( fetchedMoviesData.length > 0 ) {
-                            switch (id){
-                                case FETCH_REVIEWS_FROM_INTERNET_LOADER:
-                                    getContext().getContentResolver().
-                                            bulkInsert(MoviesDBContract.reviewsEntry.CONTENT_URI, fetchedMoviesData);
-                                    break;
-                                case FETCH_TRAILERS_FROM_INTERNET_LOADER:
-                                    getContext().getContentResolver().
-                                            bulkInsert(MoviesDBContract.trailersEntry.CONTENT_URI, fetchedMoviesData);
-                                    break;
-                            }
-                        }
-                        return null;
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                }
-            }
-        };
+        String searchID = args.getString(SEARCH_QUERY_MOVIE_ID_EXTRA);
+        if ( id == SHOW_REVIEWS_FROM_DB_LOADER){
+            CursorLoader loader = new CursorLoader(getActivity(),
+                    MoviesDBContract.reviewsEntry.CONTENT_URI,
+                    null,
+                    MoviesDBContract.reviewsEntry.COLUMN_MOVIE_ID + "=?",
+                    new String[]{searchID},
+                    null);
+            return loader;
+        } else {
+            CursorLoader loader = new CursorLoader(getActivity(),
+                    MoviesDBContract.trailersEntry.CONTENT_URI,
+                    null,
+                    MoviesDBContract.trailersEntry.COLUMN_MOVIE_ID + "=?",
+                    new String[]{searchID},
+                    null);
+            return loader;
+        }
     }
 
     @Override
